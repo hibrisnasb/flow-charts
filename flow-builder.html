@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flow Chart Builder — Scale Army</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%;background:rgb(22,43,62);color:#fff;font-family:"Poppins",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+
+/* ── Layout ── */
+.builder{display:flex;height:100vh;overflow:hidden}
+
+/* ── Sidebar ── */
+.sidebar{width:310px;min-width:310px;background:rgb(11,22,36);border-right:1px solid rgba(255,255,255,0.12);display:flex;flex-direction:column;overflow:hidden}
+.sb-head{padding:18px 14px 12px;border-bottom:1px solid rgba(255,255,255,0.10);flex-shrink:0}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;padding:3px 11px;border-radius:9999px;background:rgba(255,100,50,.10);border:1.25px solid rgba(255,100,50,.20);margin-bottom:12px}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:rgb(255,100,50);box-shadow:0 0 0 2px rgba(255,100,50,.25);flex-shrink:0}
+.eyebrow span{font:500 10px/1 inherit;color:rgb(255,100,50);text-transform:uppercase;letter-spacing:.08em}
+.meta{display:flex;flex-direction:column;gap:7px}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font:500 10px/1 inherit;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.40)}
+.f input{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:7px;color:#fff;font:400 12px/1.4 inherit;padding:8px 11px;outline:none;width:100%;transition:border-color 120ms}
+.f input:focus{border-color:rgb(255,100,50)}
+
+.sb-body{flex:1;overflow-y:auto;padding:10px 11px 0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.14) transparent}
+.sec-lbl{font:500 10px/1 inherit;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.38);margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.sec-lbl em{color:rgb(255,100,50);font-style:normal}
+.nlist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px}
+.ni{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.10);border-radius:9px;padding:8px 9px;display:flex;align-items:center;gap:7px;cursor:grab;user-select:none;transition:border-color 120ms,background 120ms}
+.ni:active{cursor:grabbing}
+.ni.dragging{opacity:.3}
+.ni.drag-over{border-color:rgb(255,100,50);background:rgba(255,100,50,.05)}
+.dh{color:rgba(255,255,255,.35);font-size:12px;line-height:1;cursor:grab;flex-shrink:0}
+.ip{width:24px;height:14px;flex-shrink:0;border-radius:3px;border:1px solid}
+.ip[data-cat=neutral] {background:rgb(110,128,148);border-color:rgba(201,201,204,.80)}
+.ip[data-cat=ai]      {background:rgb(49,54,75);   border-color:rgba(158,75,163,.75)}
+.ip[data-cat=nurture] {background:rgb(61,73,71);   border-color:rgba(239,200,105,.75)}
+.ip[data-cat=positive]{background:rgb(33,65,79);   border-color:rgba(79,166,154,.80)}
+.ip[data-cat=lost]    {background:rgb(58,46,61);   border-style:dashed;border-color:rgba(217,54,54,.60)}
+.ip[data-shape=terminal]{border-radius:9999px}
+.ip[data-shape=decision]{clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);border:none}
+.ip[data-shape=io]{transform:skewX(-10deg)}
+.ii{flex:1;min-width:0}
+.il{font:600 11px/1.25 inherit;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.im{font:400 9px/1 inherit;color:rgba(255,255,255,.38);margin-top:2px;text-transform:capitalize}
+.ia{display:flex;gap:2px;flex-shrink:0}
+.ib{background:transparent;border:0;border-radius:5px;color:rgba(255,255,255,.38);cursor:pointer;padding:3px 5px;font-size:11px;line-height:1;transition:color 120ms,background 120ms}
+.ib:hover{color:#fff;background:rgba(255,255,255,.07)}
+.ib.del:hover{color:rgb(217,54,54);background:rgba(217,54,54,.12)}
+.no-nodes{text-align:center;padding:24px 8px;color:rgba(255,255,255,.35);font:400 11px/1.6 inherit}
+
+.sb-foot{padding:9px 11px 13px;border-top:1px solid rgba(255,255,255,.10);display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.btn-p{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;background:rgb(255,100,50);color:rgb(22,43,62);border:0;border-radius:9999px;font:600 12px/1 inherit;cursor:pointer;width:100%;transition:filter 120ms}
+.btn-p:hover{filter:brightness(1.08)}
+.btn-g{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;background:transparent;color:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.15);border-radius:9999px;font:500 11px/1 inherit;cursor:pointer;width:100%;transition:border-color 120ms,color 120ms}
+.btn-g:hover{border-color:rgba(255,255,255,.40);color:#fff}
+
+/* ── Canvas ── */
+.canvas-area{flex:1;overflow:auto;background:rgb(22,43,62);display:flex;flex-direction:column}
+.ctb{position:sticky;top:0;z-index:10;background:rgba(22,43,62,.92);backdrop-filter:blur(8px);border-bottom:1px solid rgba(255,255,255,.10);padding:8px 22px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.ctb-tag{font:500 9px/1 inherit;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.35)}
+.ctb-name{font:600 12px/1 inherit;color:#fff}
+.preview-wrap{padding:44px 36px 80px;flex:1}
+.p-hd{max-width:900px;margin:0 auto 36px}
+.p-ey{display:inline-flex;align-items:center;gap:7px;padding:3px 11px;border-radius:9999px;background:rgba(255,100,50,.10);border:1.25px solid rgba(255,100,50,.20);margin-bottom:12px}
+.p-ey::before{content:"";width:7px;height:7px;border-radius:50%;background:rgb(255,100,50);box-shadow:0 0 0 2px rgba(255,100,50,.25)}
+.p-ey span{font:500 10px/1 inherit;color:rgb(255,100,50);text-transform:uppercase;letter-spacing:.08em}
+.p-title{font:700 36px/1.1 inherit;color:#fff;margin:0 0 8px;letter-spacing:-.01em}
+.p-sub{font:400 14px/1.5 inherit;color:rgba(255,255,255,.60);margin:0;max-width:540px}
+.fc{position:relative;max-width:900px;margin:0 auto}
+.dot-bg{position:absolute;inset:-20px;border-radius:14px;pointer-events:none;
+  background:radial-gradient(circle at 1px 1px,rgba(255,255,255,.05) 1px,transparent 0);
+  background-size:32px 32px;
+  -webkit-mask-image:radial-gradient(ellipse at center,black 55%,transparent 100%);
+  mask-image:radial-gradient(ellipse at center,black 55%,transparent 100%)}
+.fc svg.wires{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:0}
+
+/* ── Preview nodes ── */
+.pn{position:absolute!important;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:13px 18px;box-shadow:0 25px 50px -12px rgba(0,0,0,.28);transform:translate(-50%,-50%);z-index:2;transition:transform 180ms,box-shadow 180ms}
+.pn:hover{transform:translate(-50%,-50%) translateY(-2px);box-shadow:0 30px 60px -14px rgba(0,0,0,.48);z-index:4}
+.pn-lbl{font:600 13px/1.2 inherit;color:#fff;letter-spacing:-.005em}
+.pn-sub{font:400 11px/1.35 inherit;color:rgba(255,255,255,.60);margin-top:4px}
+
+.pn--terminal{background:rgb(110,128,148);border:1.25px solid rgba(201,201,204,.80);border-radius:9999px}
+.pn--terminal.end{background:rgb(33,65,79);border-color:rgba(79,166,154,.80)}
+.pn--process{background:rgb(49,54,75);border:1.25px solid rgba(158,75,163,.75);border-radius:10px;position:relative}
+.pn--process::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 2px 2px 0;background:rgb(158,75,163)}
+.pn--subprocess{background:rgb(49,54,75);border:1.25px solid rgba(158,75,163,.75);border-radius:10px;position:relative;box-shadow:inset 0 0 0 4px rgb(22,43,62),inset 0 0 0 5.25px rgba(158,75,163,.75),0 25px 50px -12px rgba(0,0,0,.28)}
+.pn--subprocess::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 2px 2px 0;background:rgb(158,75,163)}
+.pn--decision{background:transparent!important;border:none!important;box-shadow:none!important;position:relative}
+.pn--decision .ds{position:absolute;inset:0}
+.pn--decision .ds::after{content:"";position:absolute;inset:0;background:rgb(110,128,148);clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%)}
+.pn--decision .ds::before{content:"";position:absolute;inset:0;z-index:1;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><polygon points='50,1 99,50 50,99 1,50' fill='none' stroke='%23c9c9cc' stroke-opacity='0.70' stroke-width='1.5' vector-effect='non-scaling-stroke'/></svg>");background-size:100% 100%;background-repeat:no-repeat}
+.pn--decision .di{position:relative;z-index:2;max-width:74%;text-align:center}
+.pn--decision .pn-lbl{font-size:12.5px}
+.pn--io{background:rgb(110,128,148);border:1.25px solid rgba(201,201,204,.80);border-radius:4px;transform:translate(-50%,-50%) skewX(-14deg)}
+.pn--io>*{transform:skewX(14deg)}
+.pn--io:hover{transform:translate(-50%,-50%) skewX(-14deg) translateY(-2px)}
+
+/* Category overrides */
+.pn[data-cat=neutral]:not(.pn--decision) {background:rgb(110,128,148);border-color:rgba(201,201,204,.80)}
+.pn[data-cat=ai]:not(.pn--decision)      {background:rgb(49,54,75);   border-color:rgba(158,75,163,.75)}
+.pn[data-cat=nurture]:not(.pn--decision) {background:rgb(61,73,71);   border-color:rgba(239,200,105,.75)}
+.pn[data-cat=positive]:not(.pn--decision){background:rgb(33,65,79);   border-color:rgba(79,166,154,.80)}
+.pn[data-cat=lost]:not(.pn--decision)    {background:rgb(58,46,61)!important;border:1.25px dashed rgba(217,54,54,.60)!important}
+
+/* Stripe per cat */
+.pn--process[data-cat=neutral]::before,.pn--subprocess[data-cat=neutral]::before  {background:rgba(201,201,204,.95)}
+.pn--process[data-cat=ai]::before,.pn--subprocess[data-cat=ai]::before            {background:rgb(158,75,163)}
+.pn--process[data-cat=nurture]::before,.pn--subprocess[data-cat=nurture]::before  {background:rgb(239,200,105)}
+.pn--process[data-cat=positive]::before,.pn--subprocess[data-cat=positive]::before{background:rgb(79,166,154)}
+.pn--process[data-cat=lost]::before,.pn--subprocess[data-cat=lost]::before        {background:rgb(217,54,54)}
+
+/* Subprocess double-border per cat */
+.pn--subprocess[data-cat=neutral] {box-shadow:inset 0 0 0 4px rgb(22,43,62),inset 0 0 0 5.25px rgba(201,201,204,.80),0 25px 50px -12px rgba(0,0,0,.28)}
+.pn--subprocess[data-cat=ai]      {box-shadow:inset 0 0 0 4px rgb(22,43,62),inset 0 0 0 5.25px rgba(158,75,163,.75),0 25px 50px -12px rgba(0,0,0,.28)}
+.pn--subprocess[data-cat=nurture] {box-shadow:inset 0 0 0 4px rgb(22,43,62),inset 0 0 0 5.25px rgba(239,200,105,.75),0 25px 50px -12px rgba(0,0,0,.28)}
+.pn--subprocess[data-cat=positive]{box-shadow:inset 0 0 0 4px rgb(22,43,62),inset 0 0 0 5.25px rgba(79,166,154,.80),0 25px 50px -12px rgba(0,0,0,.28)}
+.pn--subprocess[data-cat=lost]    {box-shadow:inset 0 0 0 4px rgb(22,43,62),inset 0 0 0 5.25px rgba(217,54,54,.60),0 25px 50px -12px rgba(0,0,0,.28)}
+
+/* Decision fill per cat */
+.pn--decision[data-cat=neutral]  .ds::after{background:rgb(110,128,148)}
+.pn--decision[data-cat=ai]       .ds::after{background:rgb(49,54,75)}
+.pn--decision[data-cat=nurture]  .ds::after{background:rgb(61,73,71)}
+.pn--decision[data-cat=positive] .ds::after{background:rgb(33,65,79)}
+.pn--decision[data-cat=lost]     .ds::after{background:rgb(58,46,61)}
+
+/* Edge label */
+.el{position:absolute;transform:translate(-50%,-50%);font:600 9px/1 inherit;color:#fff;background:rgb(22,43,62);padding:3px 8px;border-radius:9999px;border:1px solid rgba(255,100,50,.35);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;z-index:3;box-shadow:0 0 0 3px rgb(22,43,62)}
+.el.yes{color:rgb(255,100,50);border-color:rgba(255,100,50,.55)}
+.el.no {color:rgba(255,255,255,.60);border-color:rgba(255,255,255,.25)}
+
+/* Empty state */
+.empty-st{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;gap:10px}
+.empty-st p{font:400 13px/1.55 inherit;color:rgba(255,255,255,.35);text-align:center;max-width:240px;margin:0}
+.empty-icon{opacity:.18;font-size:48px}
+
+/* Footer rule */
+.footer-rule{position:fixed;left:0;right:0;bottom:0;height:6px;background:rgb(255,100,50);z-index:100}
+
+/* ── Modal ── */
+.mbd{position:fixed;inset:0;background:rgba(11,22,36,.80);backdrop-filter:blur(5px);z-index:200;display:none;align-items:center;justify-content:center}
+.mbd.open{display:flex}
+.modal{width:480px;max-width:calc(100vw - 24px);max-height:calc(100vh - 32px);overflow-y:auto;background:rgb(14,28,43);border:1px solid rgba(255,255,255,.14);border-radius:18px;box-shadow:0 40px 80px -20px rgba(0,0,0,.70);padding:20px;display:flex;flex-direction:column;gap:13px}
+.mhd{display:flex;align-items:center;justify-content:space-between}
+.mtitle{font:700 11px/1 inherit;letter-spacing:.10em;text-transform:uppercase;color:rgb(255,100,50)}
+.mx{background:transparent;border:0;color:rgba(255,255,255,.35);font-size:19px;cursor:pointer;padding:3px 7px;border-radius:5px;line-height:1;transition:color 120ms,background 120ms}
+.mx:hover{color:#fff;background:rgba(255,255,255,.07)}
+.mhr{border:0;border-top:1px solid rgba(255,255,255,.10);margin:0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.row3{display:grid;grid-template-columns:72px 1fr 1fr;gap:9px}
+.full{grid-column:1/-1}
+
+/* Selection grids */
+.sg{display:flex;gap:5px;flex-wrap:wrap}
+.so{flex:1;min-width:54px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 5px;border-radius:9px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.02);cursor:pointer;transition:all 120ms}
+.so:hover{border-color:rgba(255,255,255,.30)}
+.so.on{border-color:rgb(255,100,50);background:rgba(255,100,50,.08)}
+.so input{display:none}
+.so-lbl{font:500 8px/1 inherit;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.55);text-align:center}
+/* Shape chips */
+.sp{width:42px;height:24px;background:rgb(49,54,75);border:1.25px solid rgba(158,75,163,.75);border-radius:5px}
+.sp.t{border-radius:9999px;background:rgb(110,128,148);border-color:rgba(201,201,204,.80)}
+.sp.sp2{box-shadow:inset 0 0 0 3px rgb(14,28,43),inset 0 0 0 4.5px rgba(158,75,163,.75)}
+.sp.d{background:rgb(110,128,148);border:none;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);height:28px}
+.sp.io{background:rgb(110,128,148);border-color:rgba(201,201,204,.80);border-radius:2px;transform:skewX(-12deg)}
+/* Cat chips */
+.cc{width:42px;height:16px;border-radius:3px;border:1.5px solid}
+.cc[data-cat=neutral] {background:rgb(110,128,148);border-color:rgba(201,201,204,.80)}
+.cc[data-cat=ai]      {background:rgb(49,54,75);   border-color:rgba(158,75,163,.75)}
+.cc[data-cat=nurture] {background:rgb(61,73,71);   border-color:rgba(239,200,105,.75)}
+.cc[data-cat=positive]{background:rgb(33,65,79);   border-color:rgba(79,166,154,.80)}
+.cc[data-cat=lost]    {background:rgb(58,46,61);   border-style:dashed;border-color:rgba(217,54,54,.60)}
+/* Arrow line chips */
+.al{width:40px;height:3px;border-radius:2px;background:rgba(255,255,255,.40)}
+.al.yes{background:rgba(79,166,154,.90)}
+.al.no{background:transparent;border-top:2px dashed rgba(255,255,255,.35)}
+
+/* ── Print ── */
+@media print{
+  @page{size:A3 landscape;margin:0}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:rgb(22,43,62)!important}
+  .sidebar,.ctb,.footer-rule,.mbd{display:none!important}
+  .canvas-area{overflow:visible!important;height:auto!important}
+  .builder{height:auto!important;overflow:visible!important;display:block!important}
+  .preview-wrap{padding:20px 24px!important}
+  .fc{max-width:100%!important}
+  .pn:hover{transform:translate(-50%,-50%)!important}
+  .pn--io:hover{transform:translate(-50%,-50%) skewX(-14deg)!important}
+}
+</style>
+</head>
+<body>
+
+<div class="builder">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="sb-head">
+      <div class="eyebrow"><span>Flow Builder</span></div>
+      <div class="meta">
+        <div class="f"><label>Eyebrow pill</label><input id="s-eyebrow" type="text" placeholder="e.g. Scale Army · Flow" value="Scale Army · Flow"></div>
+        <div class="f"><label>Flow Title</label><input id="s-title" type="text" placeholder="e.g. AI Lifecycle Workflow" value="Untitled Flow"></div>
+        <div class="f"><label>Subtitle</label><input id="s-sub" type="text" placeholder="Brief description of the flow…"></div>
+      </div>
+    </div>
+
+    <div class="sb-body">
+      <p class="sec-lbl">Steps &nbsp;<em id="cnt">0</em></p>
+      <ul class="nlist" id="nlist"></ul>
+      <div class="no-nodes" id="no-nodes">No steps yet.<br>Add your first step below.</div>
+    </div>
+
+    <div class="sb-foot">
+      <button class="btn-p" onclick="openModal()">+ &nbsp;Add Step</button>
+      <button class="btn-g" onclick="window.print()">↓ &nbsp;Download PDF</button>
+    </div>
+  </aside>
+
+  <!-- ═══ CANVAS ═══ -->
+  <main class="canvas-area">
+    <div class="ctb">
+      <span class="ctb-tag">Preview</span>
+      <span class="ctb-name" id="ctb-name">Untitled Flow</span>
+    </div>
+    <div class="preview-wrap" id="preview-wrap"></div>
+  </main>
+</div>
+
+<!-- ═══ MODAL ═══ -->
+<div class="mbd" id="mbd" onclick="bdClick(event)">
+  <div class="modal">
+    <div class="mhd">
+      <span class="mtitle" id="mtitle">Add Step</span>
+      <button class="mx" onclick="closeModal()">×</button>
+    </div>
+    <input type="hidden" id="eid">
+
+    <div class="f full"><label>Label (main text)</label><input id="m-lbl" type="text" placeholder="e.g. Lead enters funnel"></div>
+    <div class="f full"><label>Sub-label (optional)</label><input id="m-sub" type="text" placeholder="e.g. via web form, ad, referral"></div>
+
+    <div class="f full">
+      <label>Shape</label>
+      <div class="sg" id="sg"></div>
+    </div>
+
+    <div class="f full">
+      <label>Category</label>
+      <div class="sg" id="cg"></div>
+    </div>
+
+    <div class="row3">
+      <div class="f">
+        <label>Level</label>
+        <input id="m-level" type="number" min="1" placeholder="1" value="1" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:7px;color:#fff;font:400 12px/1.4 inherit;padding:8px 11px;outline:none;width:100%;-webkit-appearance:none">
+      </div>
+      <div class="f">
+        <label>Column</label>
+        <select id="m-col" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:7px;color:#fff;font:400 12px/1.4 inherit;padding:8px 11px;outline:none;width:100%;-webkit-appearance:none;cursor:pointer">
+          <option value="left">← Left</option>
+          <option value="center" selected>Center</option>
+          <option value="right">Right →</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>Connection label</label>
+        <input id="m-albl" type="text" placeholder="e.g. Yes / No">
+      </div>
+    </div>
+
+    <div class="f full">
+      <label>Connects from</label>
+      <select id="m-src" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:7px;color:#fff;font:400 12px/1.4 inherit;padding:8px 11px;outline:none;width:100%;-webkit-appearance:none;cursor:pointer">
+        <option value="">(Previous step in list)</option>
+      </select>
+    </div>
+
+    <div class="f full">
+      <label>Incoming arrow style</label>
+      <div class="sg">
+        <label class="so on" data-at="default" onclick="selAt('default')"><input type="radio" name="at" value="default" checked><div class="al"></div><span class="so-lbl">Default</span></label>
+        <label class="so" data-at="yes" onclick="selAt('yes')"><input type="radio" name="at" value="yes"><div class="al yes"></div><span class="so-lbl">Yes</span></label>
+        <label class="so" data-at="no" onclick="selAt('no')"><input type="radio" name="at" value="no"><div class="al no"></div><span class="so-lbl">No</span></label>
+      </div>
+    </div>
+
+    <button class="btn-p" onclick="saveNode()" style="margin-top:2px">Save Step</button>
+  </div>
+</div>
+
+<div class="footer-rule"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
+const S = { title:'Untitled Flow', subtitle:'', eyebrow:'Scale Army · Flow', nodes:[] };
+function nextLevel(){ return S.nodes.length ? Math.max(...S.nodes.map(n=>n.level))+1 : 1; }
+let selShape = 'process';
+let selCat   = 'ai';
+let dragIdx  = null;
+
+const SHAPES = [
+  {id:'terminal',  lbl:'Terminal',   cls:'t'},
+  {id:'process',   lbl:'Process',    cls:''},
+  {id:'subprocess',lbl:'Sub-process',cls:'sp2'},
+  {id:'decision',  lbl:'Decision',   cls:'d'},
+  {id:'io',        lbl:'I / O',      cls:'io'},
+];
+const CATS = [
+  {id:'neutral', lbl:'Neutral'},
+  {id:'ai',      lbl:'AI Action'},
+  {id:'nurture', lbl:'Nurture'},
+  {id:'positive',lbl:'Positive'},
+  {id:'lost',    lbl:'Lost'},
+];
+const SZ = {
+  terminal:   {w:200,h:52},
+  process:    {w:216,h:64},
+  subprocess: {w:216,h:64},
+  decision:   {w:188,h:104},
+  io:         {w:208,h:56},
+};
+const COL = {left:185, center:450, right:715};
+const ROW_H = 150;
+const CVW = 900;
+
+// ─────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────
+document.getElementById('s-eyebrow').addEventListener('input', e=>{ S.eyebrow=e.target.value; renderCanvas(); });
+document.getElementById('s-title').addEventListener('input',   e=>{ S.title=e.target.value; renderCanvas(); });
+document.getElementById('s-sub').addEventListener('input',     e=>{ S.subtitle=e.target.value; renderCanvas(); });
+
+buildShapeGrid();
+buildCatGrid();
+renderAll();
+
+// ─────────────────────────────────────────────
+// Shape & Cat grids
+// ─────────────────────────────────────────────
+function buildShapeGrid(){
+  document.getElementById('sg').innerHTML = SHAPES.map(s=>`
+    <label class="so${s.id===selShape?' on':''}" data-sid="${s.id}" onclick="selShape_fn('${s.id}')">
+      <div class="sp ${s.cls}"></div>
+      <span class="so-lbl">${s.lbl}</span>
+    </label>`).join('');
+}
+function buildCatGrid(){
+  document.getElementById('cg').innerHTML = CATS.map(c=>`
+    <label class="so${c.id===selCat?' on':''}" data-cid="${c.id}" onclick="selCat_fn('${c.id}')">
+      <div class="cc" data-cat="${c.id}"></div>
+      <span class="so-lbl">${c.lbl}</span>
+    </label>`).join('');
+}
+function selShape_fn(id){ selShape=id; document.querySelectorAll('#sg .so').forEach(el=>el.classList.toggle('on',el.dataset.sid===id)); }
+function selCat_fn(id)  { selCat=id;   document.querySelectorAll('#cg .so').forEach(el=>el.classList.toggle('on',el.dataset.cid===id)); }
+function selAt(v){
+  document.querySelector(`input[name=at][value="${v}"]`).checked=true;
+  document.querySelectorAll('.mbd .so[data-at]').forEach(el=>el.classList.toggle('on',el.dataset.at===v));
+}
+
+// ─────────────────────────────────────────────
+// Modal
+// ─────────────────────────────────────────────
+function populateSrcSelect(excludeId){
+  const sel = document.getElementById('m-src');
+  const opts = ['<option value="">(Previous step in list)</option>'];
+  S.nodes.forEach(n=>{
+    if(n.id===excludeId) return;
+    opts.push(`<option value="${n.id}">${esc(n.label)} — Lv ${n.level}</option>`);
+  });
+  sel.innerHTML = opts.join('');
+}
+
+function openModal(editId=null){
+  document.getElementById('mtitle').textContent = editId ? 'Edit Step' : 'Add Step';
+  document.getElementById('eid').value = editId||'';
+  populateSrcSelect(editId||null);
+  if(editId){
+    const n = S.nodes.find(x=>x.id===editId); if(!n) return;
+    document.getElementById('m-lbl').value   = n.label;
+    document.getElementById('m-sub').value   = n.sublabel||'';
+    document.getElementById('m-level').value = n.level;
+    document.getElementById('m-col').value   = n.col;
+    document.getElementById('m-albl').value  = n.arrowLbl||'';
+    document.getElementById('m-src').value   = n.sourceId||'';
+    selShape = n.shape; selCat = n.cat;
+    document.querySelector(`input[name=at][value="${n.arrowType||'default'}"]`).checked=true;
+    document.querySelectorAll('.mbd .so[data-at]').forEach(el=>el.classList.toggle('on',el.dataset.at===(n.arrowType||'default')));
+  } else {
+    document.getElementById('m-lbl').value   = '';
+    document.getElementById('m-sub').value   = '';
+    document.getElementById('m-level').value = nextLevel();
+    document.getElementById('m-col').value   = 'center';
+    document.getElementById('m-albl').value  = '';
+    document.getElementById('m-src').value   = '';
+    selShape='process'; selCat='ai';
+    document.querySelector('input[name=at][value="default"]').checked=true;
+    document.querySelectorAll('.mbd .so[data-at]').forEach(el=>el.classList.toggle('on',el.dataset.at==='default'));
+  }
+  buildShapeGrid(); buildCatGrid();
+  document.getElementById('mbd').classList.add('open');
+  setTimeout(()=>document.getElementById('m-lbl').focus(),80);
+}
+function closeModal(){ document.getElementById('mbd').classList.remove('open'); }
+function bdClick(e){ if(e.target===document.getElementById('mbd')) closeModal(); }
+
+// ─────────────────────────────────────────────
+// Save / Delete
+// ─────────────────────────────────────────────
+function uid(){ return Math.random().toString(36).slice(2,9); }
+
+function saveNode(){
+  const lbl = document.getElementById('m-lbl').value.trim();
+  if(!lbl){ document.getElementById('m-lbl').focus(); return; }
+  const node = {
+    id:       document.getElementById('eid').value || uid(),
+    label:    lbl,
+    sublabel: document.getElementById('m-sub').value.trim(),
+    shape:    selShape,
+    cat:      selCat,
+    col:      document.getElementById('m-col').value,
+    arrowLbl: document.getElementById('m-albl').value.trim(),
+    arrowType:document.querySelector('input[name=at]:checked')?.value||'default',
+    level:    Math.max(1, parseInt(document.getElementById('m-level').value)||1),
+    sourceId: document.getElementById('m-src').value || null,
+  };
+  const eid = document.getElementById('eid').value;
+  if(eid){ const i=S.nodes.findIndex(n=>n.id===eid); if(i!==-1) S.nodes[i]=node; }
+  else    { S.nodes.push(node); }
+  closeModal(); renderAll();
+}
+function deleteNode(id){ S.nodes=S.nodes.filter(n=>n.id!==id); renderAll(); }
+
+// ─────────────────────────────────────────────
+// Drag reorder
+// ─────────────────────────────────────────────
+function dStart(e,i){ dragIdx=i; e.currentTarget.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; }
+function dEnd(e){ e.currentTarget.classList.remove('dragging'); document.querySelectorAll('.ni').forEach(el=>el.classList.remove('drag-over')); }
+function dOver(e,i){ e.preventDefault(); e.dataTransfer.dropEffect='move'; document.querySelectorAll('.ni').forEach(el=>el.classList.remove('drag-over')); e.currentTarget.classList.add('drag-over'); }
+function dDrop(e,i){ e.preventDefault(); if(dragIdx===null||dragIdx===i) return; const a=[...S.nodes],[m]=a.splice(dragIdx,1); a.splice(i,0,m); S.nodes=a; dragIdx=null; renderAll(); }
+
+// ─────────────────────────────────────────────
+// Render list
+// ─────────────────────────────────────────────
+function renderList(){
+  const list=document.getElementById('nlist');
+  const none=document.getElementById('no-nodes');
+  document.getElementById('cnt').textContent=S.nodes.length;
+  none.style.display=S.nodes.length?'none':'block';
+  list.innerHTML=S.nodes.map((n,i)=>`
+    <li class="ni" draggable="true"
+      ondragstart="dStart(event,${i})" ondragend="dEnd(event)"
+      ondragover="dOver(event,${i})" ondrop="dDrop(event,${i})">
+      <span class="dh">⠿</span>
+      <div class="ip" data-cat="${n.cat}" data-shape="${n.shape}"></div>
+      <div class="ii">
+        <div class="il">${esc(n.label)}</div>
+        <div class="im">Lv ${n.level} · ${n.shape} · ${n.cat}</div>
+      </div>
+      <div class="ia">
+        <button class="ib" onclick="openModal('${n.id}')" title="Edit">✎</button>
+        <button class="ib del" onclick="deleteNode('${n.id}')" title="Delete">✕</button>
+      </div>
+    </li>`).join('');
+}
+
+// ─────────────────────────────────────────────
+// Render canvas
+// ─────────────────────────────────────────────
+function renderCanvas(){
+  document.getElementById('ctb-name').textContent = S.title||'Untitled Flow';
+  const wrap = document.getElementById('preview-wrap');
+  const nodes = S.nodes;
+
+  if(!nodes.length){
+    wrap.innerHTML=`<div class="empty-st"><div class="empty-icon">◇</div><p>Add steps in the sidebar to preview your flow here.</p></div>`;
+    return;
+  }
+
+  // Compute positions — Y from level, X from column
+  // Ensure every node has a numeric level (guard against old/missing data)
+  nodes.forEach((n,i)=>{ if(!n.level || isNaN(n.level)) n.level = i+1; });
+
+  const uniqueLevels = [...new Set(nodes.map(n=>n.level))].sort((a,b)=>a-b);
+  const levelY = {};
+  uniqueLevels.forEach((lv,idx)=>{ levelY[lv] = 70 + idx*ROW_H; });
+  const pos = nodes.map(n=>{
+    const sz=SZ[n.shape]||SZ.process;
+    return { x: COL[n.col]||COL.center, y: levelY[n.level], w:sz.w, h:sz.h };
+  });
+  const cvH = uniqueLevels.length*ROW_H+60;
+
+  // SVG arrow markers
+  const defs=`<defs>
+    <marker id="ar"   viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10Z" fill="rgba(255,255,255,.45)"/></marker>
+    <marker id="ar-y" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10Z" fill="rgba(79,166,154,.90)"/></marker>
+    <marker id="ar-n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10Z" fill="rgba(255,255,255,.35)"/></marker>
+  </defs>`;
+
+  const ARC = { default:'rgba(255,255,255,.45)', yes:'rgba(79,166,154,.90)', no:'rgba(255,255,255,.35)' };
+  const ARM = { default:'ar', yes:'ar-y', no:'ar-n' };
+
+  // Connection-point helpers
+  const top    = p => ({ x: p.x,          y: p.y - p.h/2 });
+  const bottom = p => ({ x: p.x,          y: p.y + p.h/2 });
+  const left   = p => ({ x: p.x - p.w/2, y: p.y         });
+  const right  = p => ({ x: p.x + p.w/2, y: p.y         });
+
+  let paths='', labels='';
+  nodes.forEach((n, i) => {
+    // Resolve source node index: explicit sourceId or previous in list
+    let si = -1;
+    if(n.sourceId){ si = nodes.findIndex(x => x.id === n.sourceId); }
+    else if(i > 0){ si = i - 1; }
+    if(si === -1) return; // no source (first node or unresolved id)
+
+    const p1=pos[si], p2=pos[i], srcNode=nodes[si];
+    const at=n.arrowType||'default';
+    const dash = at==='no' ? ' stroke-dasharray="7 5"' : '';
+    let d, lx, ly;
+
+    const sameLev = n.level === srcNode.level;
+    const sameCol = Math.abs(p1.x - p2.x) < 2;
+
+    if(sameCol){
+      const f=bottom(p1), t=top(p2);
+      d=`M${f.x},${f.y} L${t.x},${t.y}`;
+      lx=f.x; ly=(f.y+t.y)/2;
+
+    } else if(sameLev){
+      const goRight = p2.x > p1.x;
+      const f = goRight ? right(p1) : left(p1);
+      const t = goRight ? left(p2)  : right(p2);
+      d=`M${f.x},${f.y} L${t.x},${t.y}`;
+      lx=(f.x+t.x)/2; ly=f.y;
+
+    } else {
+      const f=bottom(p1), t=top(p2);
+      const elbowY = f.y + 30;
+      d=`M${f.x},${f.y} L${f.x},${elbowY} L${t.x},${elbowY} L${t.x},${t.y}`;
+      lx=(f.x+t.x)/2; ly=elbowY;
+    }
+
+    paths+=`<path d="${d}" fill="none" stroke="${ARC[at]}" stroke-width="1.75" stroke-linecap="square" marker-end="url(#${ARM[at]})"${dash}/>`;
+    if(n.arrowLbl){
+      const cls=at==='yes'?' yes':at==='no'?' no':'';
+      labels+=`<div class="el${cls}" style="left:${lx}px;top:${ly}px">${esc(n.arrowLbl)}</div>`;
+    }
+  });
+
+  // Node HTML
+  const nodesHtml = nodes.map((n,i)=>{
+    const p=pos[i];
+    const isLastTerm = n.shape==='terminal' && i===nodes.length-1;
+    const isFirstTerm = n.shape==='terminal' && i===0;
+
+    if(n.shape==='decision'){
+      return `<div class="pn pn--decision" data-cat="${n.cat}" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px">
+        <div class="ds"></div>
+        <div class="di"><div class="pn-lbl">${esc(n.label)}</div>${n.sublabel?`<div class="pn-sub">${esc(n.sublabel)}</div>`:''}</div>
+      </div>`;
+    }
+    if(n.shape==='io'){
+      return `<div class="pn pn--io" data-cat="${n.cat}" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px">
+        <div><div class="pn-lbl">${esc(n.label)}</div>${n.sublabel?`<div class="pn-sub">${esc(n.sublabel)}</div>`:''}</div>
+      </div>`;
+    }
+    const sc = {terminal:'pn--terminal',process:'pn--process',subprocess:'pn--subprocess'}[n.shape]||'pn--process';
+    const endCls = isLastTerm?' end':'';
+    return `<div class="pn ${sc}${endCls}" data-cat="${n.cat}" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px">
+      <div class="pn-lbl">${esc(n.label)}</div>
+      ${n.sublabel?`<div class="pn-sub">${esc(n.sublabel)}</div>`:''}
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML=`
+    <div class="p-hd">
+      ${S.eyebrow?`<div class="p-ey"><span>${esc(S.eyebrow)}</span></div>`:''}
+      <h1 class="p-title">${esc(S.title||'Untitled Flow')}</h1>
+      ${S.subtitle?`<p class="p-sub">${esc(S.subtitle)}</p>`:''}
+    </div>
+    <div class="fc" style="height:${cvH}px">
+      <div class="dot-bg"></div>
+      <svg class="wires" width="100%" height="100%">
+        ${defs}
+        <g fill="none" stroke-linecap="round" stroke-linejoin="round">${paths}</g>
+      </svg>
+      ${nodesHtml}
+      ${labels}
+    </div>`;
+}
+
+function renderAll(){ renderList(); renderCanvas(); }
+
+// ─────────────────────────────────────────────
+// Utils
+// ─────────────────────────────────────────────
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Keyboard shortcut: Enter in modal label ──
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeModal();
+  if(e.key==='Enter' && document.getElementById('mbd').classList.contains('open') && e.target.id!=='m-sub') saveNode();
+});
+</script>
+</body>
+</html>

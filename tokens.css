@@ -1,0 +1,470 @@
+/* ============================================================================
+   Scale Army — Design Tokens
+   Single source of truth for colors, type, spacing, radii, shadows.
+   Fonts: Poppins (loaded from Google Fonts CDN — substitute .ttfs in /fonts/
+   and switch to @font-face when they arrive from the client).
+   ============================================================================ */
+
+/* Self-hosted Poppins — all weights + italics supplied by brand */
+@font-face { font-family: "Poppins"; font-weight: 100; font-style: normal; font-display: swap; src: url("fonts/Poppins-Thin.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 100; font-style: italic; font-display: swap; src: url("fonts/Poppins-ThinItalic.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 200; font-style: normal; font-display: swap; src: url("fonts/Poppins-ExtraLight.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 200; font-style: italic; font-display: swap; src: url("fonts/Poppins-ExtraLightItalic.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 300; font-style: normal; font-display: swap; src: url("fonts/Poppins-Light.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 300; font-style: italic; font-display: swap; src: url("fonts/Poppins-LightItalic.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/Poppins-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 400; font-style: italic; font-display: swap; src: url("fonts/Poppins-Italic.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 500; font-style: normal; font-display: swap; src: url("fonts/Poppins-Medium.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 500; font-style: italic; font-display: swap; src: url("fonts/Poppins-MediumItalic.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 600; font-style: normal; font-display: swap; src: url("fonts/Poppins-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 600; font-style: italic; font-display: swap; src: url("fonts/Poppins-SemiBoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 700; font-style: normal; font-display: swap; src: url("fonts/Poppins-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 700; font-style: italic; font-display: swap; src: url("fonts/Poppins-BoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 800; font-style: normal; font-display: swap; src: url("fonts/Poppins-ExtraBold.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 800; font-style: italic; font-display: swap; src: url("fonts/Poppins-ExtraBoldItalic.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 900; font-style: normal; font-display: swap; src: url("fonts/Poppins-Black.ttf") format("truetype"); }
+@font-face { font-family: "Poppins"; font-weight: 900; font-style: italic; font-display: swap; src: url("fonts/Poppins-BlackItalic.ttf") format("truetype"); }
+
+:root {
+  /* ----------------------------------------------------------------------
+     COLORS
+     ---------------------------------------------------------------------- */
+
+  /* Brand */
+  --sa-navy-900:        rgb(22, 43, 62);          /* #162B3E — background, everywhere */
+  --sa-navy-950:        rgb(20, 38, 56);          /* slightly deeper — hover wells */
+  --sa-navy-1000:       rgb(11, 22, 36);          /* deepest — reserved for print / edges */
+  --sa-orange-500:      rgb(255, 100, 50);        /* #FF6432 — the accent */
+
+  /* Orange, alpha scale (use these for tints, not hard-coded rgba) */
+  --sa-orange-10:       rgba(255, 100, 50, 0.10); /* pill fill */
+  --sa-orange-20:       rgba(255, 100, 50, 0.20); /* pill border */
+  --sa-orange-25:       rgba(255, 100, 50, 0.25); /* inner divider */
+  --sa-orange-50:       rgba(255, 100, 50, 0.50);
+  --sa-orange-75:       rgba(255, 100, 50, 0.75); /* stacked-dot bloom */
+
+  /* Foreground — white at tuned alphas */
+  --sa-fg:              rgb(255, 255, 255);
+  --sa-fg-85:           rgba(255, 255, 255, 0.85);
+  --sa-fg-82:           rgba(255, 255, 255, 0.82);
+  --sa-fg-78:           rgba(255, 255, 255, 0.78);
+  --sa-fg-72:           rgba(255, 255, 255, 0.72);
+  --sa-fg-68:           rgba(255, 255, 255, 0.68);
+  --sa-fg-65:           rgba(255, 255, 255, 0.65);
+  --sa-fg-40:           rgba(255, 255, 255, 0.40);
+  --sa-fg-24:           rgba(255, 255, 255, 0.24); /* borders */
+
+  /* Surfaces */
+  --sa-surface-glass:       rgba(255, 255, 255, 0.02); /* default card */
+  --sa-surface-glass-hover: rgba(255, 255, 255, 0.05);
+  --sa-surface-glass-heavy: rgba(255, 255, 255, 0.08); /* highlighted summary card */
+
+  /* Semantic aliases */
+  --sa-bg:              var(--sa-navy-900);
+  --sa-accent:          var(--sa-orange-500);
+  --sa-accent-soft:     var(--sa-orange-10);
+  --sa-border:          var(--sa-fg-24);
+  --sa-border-strong:   rgba(255, 255, 255, 0.38);  /* hover */
+  --sa-divider:         var(--sa-orange-25);
+  --sa-text:            var(--sa-fg);
+  --sa-text-body:       var(--sa-fg-82);
+  --sa-text-subtle:     var(--sa-fg-72);
+  --sa-text-quiet:      var(--sa-fg-40);
+
+  /* Shadow — one elevation, used everywhere */
+  --sa-shadow:          0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --sa-shadow-flat:     0 25px 50px 0 rgba(0, 0, 0, 0.25);
+
+  /* ----------------------------------------------------------------------
+     TYPE
+     ---------------------------------------------------------------------- */
+
+  --sa-font:            "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Scale (px values pulled from Figma source, rounded sensibly) */
+  --sa-text-hero:       128px;  /* title-slide headline */
+  --sa-text-mega:        96px;  /* hero metric */
+  --sa-text-huge:        88px;
+  --sa-text-h1:          64px;  /* section title */
+  --sa-text-metric-xl:   52px;
+  --sa-text-metric-lg:   44px;
+  --sa-text-section:     37.12px; /* "What It Does" */
+  --sa-text-lead:        32px;
+  --sa-text-body-lg:     27.84px;
+  --sa-text-subtitle:    24px;
+  --sa-text-strong:      22px;
+  --sa-text-body:        18px;
+  --sa-text-strong-sm:   17px;
+  --sa-text-caption:     16px;
+  --sa-text-eyebrow:     15.03px;
+
+  /* Weights */
+  --sa-weight-regular:  400;
+  --sa-weight-medium:   500;
+  --sa-weight-semi:     600;
+  --sa-weight-bold:     700;
+  --sa-weight-extra:    800;
+
+  /* ----------------------------------------------------------------------
+     SPACING (8-ish scale, with exact gaps from Figma)
+     ---------------------------------------------------------------------- */
+
+  --sa-space-1:         4px;
+  --sa-space-2:         8px;
+  --sa-space-3:         12px;
+  --sa-space-4:         16px;
+  --sa-space-5:         19px;   /* how-it-works card gap */
+  --sa-space-6:         24px;
+  --sa-space-8:         32px;
+  --sa-space-10:        40px;
+  --sa-space-12:        48px;
+  --sa-space-16:        64px;
+  --sa-space-20:        80px;
+  --sa-space-24:        100px;  /* slide side margin */
+  --sa-space-28:        116px;  /* 2-col gutter */
+  --sa-space-32:        130px;  /* centered-content inset */
+
+  /* ----------------------------------------------------------------------
+     RADII
+     ---------------------------------------------------------------------- */
+
+  --sa-radius-sm:       3px;   /* used once, on a 12px decorative dot */
+  --sa-radius-card:     16px;  /* callout card */
+  --sa-radius-xl:       20px;  /* slide-level card */
+  --sa-radius-pill:     9999px;
+
+  /* ----------------------------------------------------------------------
+     BORDERS
+     ---------------------------------------------------------------------- */
+
+  --sa-border-hairline: 1px solid var(--sa-border);
+  --sa-border-card:     1.5px solid var(--sa-border);
+  --sa-border-pill:     1.25px solid var(--sa-orange-20);
+  --sa-rule-footer:     6px;    /* height of the orange bottom rule */
+
+  /* ----------------------------------------------------------------------
+     MOTION
+     ---------------------------------------------------------------------- */
+
+  --sa-ease-out:        cubic-bezier(0.22, 1, 0.36, 1);
+  --sa-duration-fast:   120ms;
+  --sa-duration:        200ms;
+  --sa-duration-slow:   320ms;
+
+  /* ----------------------------------------------------------------------
+     LAYOUT — 1920×1080 slide grid
+     ---------------------------------------------------------------------- */
+
+  --sa-slide-w:         1920px;
+  --sa-slide-h:         1080px;
+  --sa-slide-gutter:    100px;
+  --sa-eyebrow-top:     74px;
+  --sa-title-top:       165px;
+  --sa-footer-bottom:   0px;
+  --sa-pagenum-bottom:  19px;
+  --sa-pagenum-right:   72px;
+}
+
+/* ============================================================================
+   BASE / RESET
+   ============================================================================ */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--sa-bg);
+  color: var(--sa-text);
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-regular);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+
+/* ============================================================================
+   SEMANTIC TYPE — apply as classes .sa-h1, .sa-body, etc.
+   ============================================================================ */
+
+.sa-hero {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-bold);
+  font-size: var(--sa-text-hero);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--sa-fg);
+}
+
+.sa-h1 {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-bold);
+  font-size: var(--sa-text-h1);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--sa-fg);
+}
+
+.sa-h2 {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-bold);
+  font-size: var(--sa-text-section);
+  line-height: 1;
+  color: var(--sa-accent);
+}
+
+.sa-metric {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-bold);
+  font-size: var(--sa-text-metric-xl);
+  line-height: 1;
+  color: var(--sa-accent);
+  font-feature-settings: "tnum" 1;
+}
+
+.sa-metric-mega {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-extra);
+  font-size: var(--sa-text-mega);
+  line-height: 1;
+  color: var(--sa-accent);
+  font-feature-settings: "tnum" 1;
+}
+
+.sa-lead {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-medium);
+  font-size: var(--sa-text-lead);
+  line-height: 1.125;
+  color: var(--sa-fg-85);
+}
+
+.sa-subtitle {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-regular);
+  font-size: var(--sa-text-subtitle);
+  line-height: 1.4;
+  color: var(--sa-fg-72);
+}
+
+.sa-body-lg {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-regular);
+  font-size: var(--sa-text-body-lg);
+  line-height: 1.1;
+  color: var(--sa-fg-82);
+}
+
+.sa-body {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-regular);
+  font-size: var(--sa-text-body);
+  line-height: 1.55;
+  color: var(--sa-fg-68);
+}
+
+.sa-body-strong {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-bold);
+  font-size: var(--sa-text-strong-sm);
+  line-height: 1.55;
+  color: var(--sa-fg-82);
+}
+
+.sa-caption {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-regular);
+  font-size: var(--sa-text-caption);
+  line-height: 1;
+  color: var(--sa-fg-72);
+}
+
+.sa-italic-aside {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-regular);
+  font-style: italic;
+  font-size: var(--sa-text-subtitle);
+  line-height: 1;
+  color: var(--sa-fg);
+}
+
+.sa-eyebrow {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-medium);
+  font-size: var(--sa-text-eyebrow);
+  line-height: 20.04px;
+  letter-spacing: 0.05em;
+  color: var(--sa-accent);
+  text-transform: uppercase;
+}
+
+.sa-pagenum {
+  font-family: var(--sa-font);
+  font-weight: var(--sa-weight-medium);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--sa-fg-40);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================
+   COMPONENT PRIMITIVES
+   ============================================================================ */
+
+/* Eyebrow pill — the single most reused brand element */
+.sa-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 15px;
+  border-radius: var(--sa-radius-pill);
+  background: var(--sa-orange-10);
+  border: var(--sa-border-pill);
+  white-space: nowrap;
+}
+.sa-pill::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sa-accent);
+  box-shadow: 0 0 0 2px var(--sa-orange-25);
+  flex-shrink: 0;
+}
+.sa-pill > span {
+  font: var(--sa-weight-medium) var(--sa-text-eyebrow)/1.33 var(--sa-font);
+  color: var(--sa-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Glass card — default surface */
+.sa-card {
+  background: var(--sa-surface-glass);
+  border: var(--sa-border-hairline);
+  border-radius: var(--sa-radius-xl);
+  box-shadow: var(--sa-shadow);
+  transition:
+    background var(--sa-duration) var(--sa-ease-out),
+    border-color var(--sa-duration) var(--sa-ease-out);
+}
+.sa-card--heavy {
+  background: var(--sa-surface-glass-heavy);
+  border-radius: var(--sa-radius-xl);
+}
+.sa-card--callout {
+  border-radius: var(--sa-radius-card);
+}
+.sa-card:hover {
+  background: var(--sa-surface-glass-hover);
+  border-color: var(--sa-border-strong);
+}
+
+/* Metric card — orange top-stroke + glass body */
+.sa-metric-card {
+  position: relative;
+  background: var(--sa-surface-glass);
+  border-radius: var(--sa-radius-xl);
+  box-shadow: var(--sa-shadow);
+  padding: 44px 24px 36px;
+  text-align: center;
+}
+.sa-metric-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--sa-accent);
+}
+
+/* Buttons (not in Figma — inferred from pill + CTA conventions) */
+.sa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  border-radius: var(--sa-radius-pill);
+  font: var(--sa-weight-semi) 16px/1 var(--sa-font);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all var(--sa-duration-fast) var(--sa-ease-out);
+  border: 1.25px solid transparent;
+  background: transparent;
+}
+.sa-btn--primary {
+  background: var(--sa-accent);
+  color: var(--sa-navy-900);
+}
+.sa-btn--primary:hover  { filter: brightness(1.06); }
+.sa-btn--primary:active { transform: translateY(1px); }
+
+.sa-btn--ghost {
+  background: var(--sa-orange-10);
+  border-color: var(--sa-orange-20);
+  color: var(--sa-accent);
+}
+.sa-btn--ghost:hover {
+  background: rgba(255, 100, 50, 0.18);
+  border-color: rgba(255, 100, 50, 0.35);
+}
+
+.sa-btn--secondary {
+  background: transparent;
+  border-color: var(--sa-fg-24);
+  color: var(--sa-fg);
+}
+.sa-btn--secondary:hover {
+  border-color: var(--sa-border-strong);
+  background: var(--sa-surface-glass-hover);
+}
+
+/* Bullet row — orange dot + text (used on agent-detail slides) */
+.sa-bullet {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+.sa-bullet::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sa-accent);
+  flex-shrink: 0;
+  transform: translateY(-3px);
+}
+
+/* Divider — orange 2px, 25% alpha */
+.sa-divider {
+  height: 2px;
+  background: var(--sa-divider);
+  border: 0;
+  margin: 0;
+}
+
+/* Footer rule — the 6px orange bar at the bottom of every slide */
+.sa-footer-rule {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: var(--sa-rule-footer);
+  background: var(--sa-accent);
+}
+
+/* Slide shell */
+.sa-slide {
+  position: relative;
+  width: var(--sa-slide-w);
+  height: var(--sa-slide-h);
+  background: var(--sa-bg);
+  overflow: hidden;
+  color: var(--sa-text);
+  font-family: var(--sa-font);
+}
+
+/* Focus (a11y) */
+:focus-visible {
+  outline: 2px solid var(--sa-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

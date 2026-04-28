@@ -1,0 +1,6 @@
+screenshots/
+scraps/
+uploads/
+hubspot.config.yml
+.DS_Store
+*.docx
