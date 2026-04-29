@@ -99,6 +99,27 @@ html,body{margin:0;padding:0;height:100%;background:rgb(22,43,62);color:#fff;fon
 .pn--io>*{transform:skewX(14deg)}
 .pn--io:hover{transform:translate(-50%,-50%) skewX(-14deg) translateY(-2px)}
 
+/* Responsive node min-sizes — no inline width/height on nodes */
+.pn--terminal{min-width:180px}
+.pn--process,.pn--subprocess{min-width:200px}
+.pn--decision{min-width:170px;min-height:90px}
+.pn--io{min-width:190px}
+
+/* Source connection rows in modal */
+.src-list{display:flex;flex-direction:column;gap:5px}
+.src-row{display:flex;gap:5px;align-items:center;padding:7px 9px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:8px;flex-wrap:wrap}
+.src-nd{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:6px;color:#fff;font:400 11px/1.4 inherit;padding:6px 9px;outline:none;flex:1;min-width:110px;-webkit-appearance:none;cursor:pointer}
+.src-lbl-in{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:6px;color:#fff;font:400 11px/1.4 inherit;padding:6px 9px;outline:none;width:82px;flex-shrink:0}
+.src-nd:focus,.src-lbl-in:focus{border-color:rgb(255,100,50)}
+.sat{background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:5px;color:rgba(255,255,255,.40);font:600 8px/1 inherit;padding:5px 7px;cursor:pointer;letter-spacing:.04em;transition:all 120ms;flex-shrink:0}
+.sat.on{border-color:rgb(255,100,50);background:rgba(255,100,50,.12);color:rgb(255,100,50)}
+.sat.yes.on{border-color:rgba(79,166,154,.80);background:rgba(79,166,154,.12);color:rgb(79,166,154)}
+.sat.no.on{border-color:rgba(255,255,255,.30);background:rgba(255,255,255,.06);color:rgba(255,255,255,.70)}
+.src-del{background:transparent;border:0;color:rgba(255,255,255,.25);font-size:14px;cursor:pointer;padding:4px 6px;border-radius:5px;line-height:1;transition:color 120ms,background 120ms;flex-shrink:0}
+.src-del:hover{color:rgb(217,54,54);background:rgba(217,54,54,.12)}
+.add-src{display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;background:transparent;border:1px dashed rgba(255,255,255,.18);border-radius:8px;color:rgba(255,255,255,.45);font:500 10px/1 inherit;cursor:pointer;width:100%;margin-top:5px;transition:all 120ms}
+.add-src:hover{border-color:rgba(255,100,50,.50);color:rgb(255,100,50)}
+
 /* Category overrides */
 .pn[data-cat=neutral]:not(.pn--decision) {background:rgb(110,128,148);border-color:rgba(201,201,204,.80)}
 .pn[data-cat=ai]:not(.pn--decision)      {background:rgb(49,54,75);   border-color:rgba(158,75,163,.75)}
@@ -252,7 +273,7 @@ html,body{margin:0;padding:0;height:100%;background:rgb(22,43,62);color:#fff;fon
       <div class="sg" id="cg"></div>
     </div>
 
-    <div class="row3">
+    <div class="row2">
       <div class="f">
         <label>Level</label>
         <input id="m-level" type="number" min="1" placeholder="1" value="1" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:7px;color:#fff;font:400 12px/1.4 inherit;padding:8px 11px;outline:none;width:100%;-webkit-appearance:none">
@@ -265,26 +286,12 @@ html,body{margin:0;padding:0;height:100%;background:rgb(22,43,62);color:#fff;fon
           <option value="right">Right →</option>
         </select>
       </div>
-      <div class="f">
-        <label>Connection label</label>
-        <input id="m-albl" type="text" placeholder="e.g. Yes / No">
-      </div>
     </div>
 
     <div class="f full">
-      <label>Connects from</label>
-      <select id="m-src" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:7px;color:#fff;font:400 12px/1.4 inherit;padding:8px 11px;outline:none;width:100%;-webkit-appearance:none;cursor:pointer">
-        <option value="">(Previous step in list)</option>
-      </select>
-    </div>
-
-    <div class="f full">
-      <label>Incoming arrow style</label>
-      <div class="sg">
-        <label class="so on" data-at="default" onclick="selAt('default')"><input type="radio" name="at" value="default" checked><div class="al"></div><span class="so-lbl">Default</span></label>
-        <label class="so" data-at="yes" onclick="selAt('yes')"><input type="radio" name="at" value="yes"><div class="al yes"></div><span class="so-lbl">Yes</span></label>
-        <label class="so" data-at="no" onclick="selAt('no')"><input type="radio" name="at" value="no"><div class="al no"></div><span class="so-lbl">No</span></label>
-      </div>
+      <label>Incoming connections</label>
+      <div class="src-list" id="m-src-list"></div>
+      <button type="button" class="add-src" onclick="addSrc()">+ Add connection</button>
     </div>
 
     <button class="btn-p" onclick="saveNode()" style="margin-top:2px">Save Step</button>
@@ -358,50 +365,60 @@ function buildCatGrid(){
 }
 function selShape_fn(id){ selShape=id; document.querySelectorAll('#sg .so').forEach(el=>el.classList.toggle('on',el.dataset.sid===id)); }
 function selCat_fn(id)  { selCat=id;   document.querySelectorAll('#cg .so').forEach(el=>el.classList.toggle('on',el.dataset.cid===id)); }
-function selAt(v){
-  document.querySelector(`input[name=at][value="${v}"]`).checked=true;
-  document.querySelectorAll('.mbd .so[data-at]').forEach(el=>el.classList.toggle('on',el.dataset.at===v));
-}
+// ─────────────────────────────────────────────
+// Modal — multi-source connection state
+// ─────────────────────────────────────────────
+let srcRows = [];
+let currentEditId = null;
 
-// ─────────────────────────────────────────────
-// Modal
-// ─────────────────────────────────────────────
-function populateSrcSelect(excludeId){
-  const sel = document.getElementById('m-src');
-  const opts = ['<option value="">(Previous step in list)</option>'];
-  S.nodes.forEach(n=>{
-    if(n.id===excludeId) return;
-    opts.push(`<option value="${n.id}">${esc(n.label)} — Lv ${n.level}</option>`);
-  });
-  sel.innerHTML = opts.join('');
+function renderSrcRows(){
+  document.getElementById('m-src-list').innerHTML = srcRows.map((sr,i)=>{
+    const opts = ['<option value="">(Previous step)</option>'];
+    S.nodes.forEach(n=>{
+      if(n.id===currentEditId) return;
+      opts.push(`<option value="${n.id}"${n.id===sr.nodeId?' selected':''}>${esc(n.label)} — Lv ${n.level}</option>`);
+    });
+    const atBtns = ['default','yes','no'].map(at=>
+      `<button type="button" class="sat ${at}${sr.arrowType===at?' on':''}" onclick="setSrcAt(${i},'${at}')">${at==='default'?'—':at[0].toUpperCase()+at.slice(1)}</button>`
+    ).join('');
+    const delBtn = srcRows.length > 1
+      ? `<button type="button" class="src-del" onclick="removeSrc(${i})" title="Remove">×</button>`
+      : `<span style="width:26px"></span>`;
+    return `<div class="src-row">
+      <select class="src-nd" onchange="srcRows[${i}].nodeId=this.value">${opts.join('')}</select>
+      <input class="src-lbl-in" type="text" placeholder="Label" value="${esc(sr.arrowLbl)}" oninput="srcRows[${i}].arrowLbl=this.value">
+      <div style="display:flex;gap:3px">${atBtns}</div>
+      ${delBtn}
+    </div>`;
+  }).join('');
 }
+function addSrc(){ srcRows.push({nodeId:'',arrowType:'default',arrowLbl:''}); renderSrcRows(); }
+function removeSrc(i){ srcRows.splice(i,1); renderSrcRows(); }
+function setSrcAt(i,at){ srcRows[i].arrowType=at; renderSrcRows(); }
 
 function openModal(editId=null){
+  currentEditId = editId;
   document.getElementById('mtitle').textContent = editId ? 'Edit Step' : 'Add Step';
   document.getElementById('eid').value = editId||'';
-  populateSrcSelect(editId||null);
   if(editId){
     const n = S.nodes.find(x=>x.id===editId); if(!n) return;
     document.getElementById('m-lbl').value   = n.label;
     document.getElementById('m-sub').value   = n.sublabel||'';
     document.getElementById('m-level').value = n.level;
     document.getElementById('m-col').value   = n.col;
-    document.getElementById('m-albl').value  = n.arrowLbl||'';
-    document.getElementById('m-src').value   = n.sourceId||'';
+    srcRows = (n.sources && n.sources.length)
+      ? n.sources.map(s=>({...s}))
+      : [{nodeId:n.sourceId||'', arrowType:n.arrowType||'default', arrowLbl:n.arrowLbl||''}];
     selShape = n.shape; selCat = n.cat;
-    document.querySelector(`input[name=at][value="${n.arrowType||'default'}"]`).checked=true;
-    document.querySelectorAll('.mbd .so[data-at]').forEach(el=>el.classList.toggle('on',el.dataset.at===(n.arrowType||'default')));
   } else {
     document.getElementById('m-lbl').value   = '';
     document.getElementById('m-sub').value   = '';
     document.getElementById('m-level').value = nextLevel();
     document.getElementById('m-col').value   = 'center';
-    document.getElementById('m-albl').value  = '';
-    document.getElementById('m-src').value   = '';
+    srcRows = [{nodeId:'', arrowType:'default', arrowLbl:''}];
     selShape='process'; selCat='ai';
-    document.querySelector('input[name=at][value="default"]').checked=true;
-    document.querySelectorAll('.mbd .so[data-at]').forEach(el=>el.classList.toggle('on',el.dataset.at==='default'));
   }
+  renderSrcRows();
   buildShapeGrid(); buildCatGrid();
   document.getElementById('mbd').classList.add('open');
   setTimeout(()=>document.getElementById('m-lbl').focus(),80);
@@ -418,16 +435,14 @@ function saveNode(){
   const lbl = document.getElementById('m-lbl').value.trim();
   if(!lbl){ document.getElementById('m-lbl').focus(); return; }
   const node = {
-    id:       document.getElementById('eid').value || uid(),
-    label:    lbl,
-    sublabel: document.getElementById('m-sub').value.trim(),
-    shape:    selShape,
-    cat:      selCat,
-    col:      document.getElementById('m-col').value,
-    arrowLbl: document.getElementById('m-albl').value.trim(),
-    arrowType:document.querySelector('input[name=at]:checked')?.value||'default',
-    level:    Math.max(1, parseInt(document.getElementById('m-level').value)||1),
-    sourceId: document.getElementById('m-src').value || null,
+    id:      document.getElementById('eid').value || uid(),
+    label:   lbl,
+    sublabel:document.getElementById('m-sub').value.trim(),
+    shape:   selShape,
+    cat:     selCat,
+    col:     document.getElementById('m-col').value,
+    level:   Math.max(1, parseInt(document.getElementById('m-level').value)||1),
+    sources: srcRows.map(sr=>({...sr})),
   };
   const eid = document.getElementById('eid').value;
   if(eid){ const i=S.nodes.findIndex(n=>n.id===eid); if(i!==-1) S.nodes[i]=node; }
@@ -482,97 +497,35 @@ function renderCanvas(){
     return;
   }
 
-  // Compute positions — Y from level, X from column
-  // Ensure every node has a numeric level (guard against old/missing data)
   nodes.forEach((n,i)=>{ if(!n.level || isNaN(n.level)) n.level = i+1; });
-
   const uniqueLevels = [...new Set(nodes.map(n=>n.level))].sort((a,b)=>a-b);
   const levelY = {};
   uniqueLevels.forEach((lv,idx)=>{ levelY[lv] = 70 + idx*ROW_H; });
-  const pos = nodes.map(n=>{
-    const sz=SZ[n.shape]||SZ.process;
-    return { x: COL[n.col]||COL.center, y: levelY[n.level], w:sz.w, h:sz.h };
-  });
-  const cvH = uniqueLevels.length*ROW_H+60;
+  const cvH = uniqueLevels.length*ROW_H + 80;
 
-  // SVG arrow markers
   const defs=`<defs>
     <marker id="ar"   viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10Z" fill="rgba(255,255,255,.45)"/></marker>
     <marker id="ar-y" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10Z" fill="rgba(79,166,154,.90)"/></marker>
     <marker id="ar-n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10Z" fill="rgba(255,255,255,.35)"/></marker>
   </defs>`;
 
-  const ARC = { default:'rgba(255,255,255,.45)', yes:'rgba(79,166,154,.90)', no:'rgba(255,255,255,.35)' };
-  const ARM = { default:'ar', yes:'ar-y', no:'ar-n' };
-
-  // Connection-point helpers
-  const top    = p => ({ x: p.x,          y: p.y - p.h/2 });
-  const bottom = p => ({ x: p.x,          y: p.y + p.h/2 });
-  const left   = p => ({ x: p.x - p.w/2, y: p.y         });
-  const right  = p => ({ x: p.x + p.w/2, y: p.y         });
-
-  let paths='', labels='';
-  nodes.forEach((n, i) => {
-    // Resolve source node index: explicit sourceId or previous in list
-    let si = -1;
-    if(n.sourceId){ si = nodes.findIndex(x => x.id === n.sourceId); }
-    else if(i > 0){ si = i - 1; }
-    if(si === -1) return; // no source (first node or unresolved id)
-
-    const p1=pos[si], p2=pos[i], srcNode=nodes[si];
-    const at=n.arrowType||'default';
-    const dash = at==='no' ? ' stroke-dasharray="7 5"' : '';
-    let d, lx, ly;
-
-    const sameLev = n.level === srcNode.level;
-    const sameCol = Math.abs(p1.x - p2.x) < 2;
-
-    if(sameCol){
-      const f=bottom(p1), t=top(p2);
-      d=`M${f.x},${f.y} L${t.x},${t.y}`;
-      lx=f.x; ly=(f.y+t.y)/2;
-
-    } else if(sameLev){
-      const goRight = p2.x > p1.x;
-      const f = goRight ? right(p1) : left(p1);
-      const t = goRight ? left(p2)  : right(p2);
-      d=`M${f.x},${f.y} L${t.x},${t.y}`;
-      lx=(f.x+t.x)/2; ly=f.y;
-
-    } else {
-      const f=bottom(p1), t=top(p2);
-      const elbowY = f.y + 30;
-      d=`M${f.x},${f.y} L${f.x},${elbowY} L${t.x},${elbowY} L${t.x},${t.y}`;
-      lx=(f.x+t.x)/2; ly=elbowY;
-    }
-
-    paths+=`<path d="${d}" fill="none" stroke="${ARC[at]}" stroke-width="1.75" stroke-linecap="square" marker-end="url(#${ARM[at]})"${dash}/>`;
-    if(n.arrowLbl){
-      const cls=at==='yes'?' yes':at==='no'?' no':'';
-      labels+=`<div class="el${cls}" style="left:${lx}px;top:${ly}px">${esc(n.arrowLbl)}</div>`;
-    }
-  });
-
-  // Node HTML
+  // Phase 1 — render nodes without inline width/height (CSS min-widths handle sizing)
   const nodesHtml = nodes.map((n,i)=>{
-    const p=pos[i];
-    const isLastTerm = n.shape==='terminal' && i===nodes.length-1;
-    const isFirstTerm = n.shape==='terminal' && i===0;
-
+    const x=COL[n.col]||COL.center, y=levelY[n.level];
     if(n.shape==='decision'){
-      return `<div class="pn pn--decision" data-cat="${n.cat}" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px">
+      return `<div class="pn pn--decision" data-cat="${n.cat}" style="left:${x}px;top:${y}px">
         <div class="ds"></div>
         <div class="di"><div class="pn-lbl">${esc(n.label)}</div>${n.sublabel?`<div class="pn-sub">${esc(n.sublabel)}</div>`:''}</div>
       </div>`;
     }
     if(n.shape==='io'){
-      return `<div class="pn pn--io" data-cat="${n.cat}" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px">
+      return `<div class="pn pn--io" data-cat="${n.cat}" style="left:${x}px;top:${y}px">
         <div><div class="pn-lbl">${esc(n.label)}</div>${n.sublabel?`<div class="pn-sub">${esc(n.sublabel)}</div>`:''}</div>
       </div>`;
     }
-    const sc = {terminal:'pn--terminal',process:'pn--process',subprocess:'pn--subprocess'}[n.shape]||'pn--process';
-    const endCls = isLastTerm?' end':'';
-    return `<div class="pn ${sc}${endCls}" data-cat="${n.cat}" style="left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px">
+    const sc={terminal:'pn--terminal',process:'pn--process',subprocess:'pn--subprocess'}[n.shape]||'pn--process';
+    const endCls=(n.shape==='terminal'&&i===nodes.length-1)?' end':'';
+    return `<div class="pn ${sc}${endCls}" data-cat="${n.cat}" style="left:${x}px;top:${y}px">
       <div class="pn-lbl">${esc(n.label)}</div>
       ${n.sublabel?`<div class="pn-sub">${esc(n.sublabel)}</div>`:''}
     </div>`;
@@ -584,15 +537,84 @@ function renderCanvas(){
       <h1 class="p-title">${esc(S.title||'Untitled Flow')}</h1>
       ${S.subtitle?`<p class="p-sub">${esc(S.subtitle)}</p>`:''}
     </div>
-    <div class="fc" style="height:${cvH}px">
+    <div class="fc" style="min-height:${cvH}px">
       <div class="dot-bg"></div>
-      <svg class="wires" width="100%" height="100%">
-        ${defs}
-        <g fill="none" stroke-linecap="round" stroke-linejoin="round">${paths}</g>
-      </svg>
+      <svg class="wires" width="100%" height="100%">${defs}<g class="wire-paths"></g></svg>
       ${nodesHtml}
-      ${labels}
     </div>`;
+
+  // Phase 2 — after layout, read actual node sizes and draw arrows
+  requestAnimationFrame(()=>{
+    const fc = wrap.querySelector('.fc');
+    if(!fc) return;
+    const pnEls = [...fc.querySelectorAll('.pn')];
+    const ARC = { default:'rgba(255,255,255,.45)', yes:'rgba(79,166,154,.90)', no:'rgba(255,255,255,.35)' };
+    const ARM = { default:'ar', yes:'ar-y', no:'ar-n' };
+
+    const pos = nodes.map((n,i)=>{
+      const el = pnEls[i];
+      return {
+        x: COL[n.col]||COL.center,
+        y: levelY[n.level],
+        w: el ? el.offsetWidth  : (SZ[n.shape]||SZ.process).w,
+        h: el ? el.offsetHeight : (SZ[n.shape]||SZ.process).h,
+      };
+    });
+
+    const top    = p => ({ x: p.x,          y: p.y - p.h/2 });
+    const bottom = p => ({ x: p.x,          y: p.y + p.h/2 });
+    const left   = p => ({ x: p.x - p.w/2, y: p.y         });
+    const right  = p => ({ x: p.x + p.w/2, y: p.y         });
+
+    let paths='', labels='';
+    nodes.forEach((n,i)=>{
+      // Support multiple incoming connections; fall back to previous-in-list for legacy nodes
+      const srcs = (n.sources && n.sources.length)
+        ? n.sources
+        : (i > 0 ? [{nodeId:'', arrowType:'default', arrowLbl:''}] : []);
+
+      srcs.forEach(src=>{
+        let si = -1;
+        if(src.nodeId){ si = nodes.findIndex(x=>x.id===src.nodeId); }
+        else if(i > 0){ si = i-1; }
+        if(si===-1) return;
+
+        const p1=pos[si], p2=pos[i], srcNode=nodes[si];
+        const at=src.arrowType||'default';
+        const dash=at==='no'?' stroke-dasharray="7 5"':'';
+        let d, lx, ly;
+
+        const sameLev = n.level === srcNode.level;
+        const sameCol = Math.abs(p1.x - p2.x) < 2;
+
+        if(sameCol){
+          const f=bottom(p1), t=top(p2);
+          d=`M${f.x},${f.y} L${t.x},${t.y}`;
+          lx=f.x; ly=(f.y+t.y)/2;
+        } else if(sameLev){
+          const goRight=p2.x>p1.x;
+          const f=goRight?right(p1):left(p1);
+          const t=goRight?left(p2):right(p2);
+          d=`M${f.x},${f.y} L${t.x},${t.y}`;
+          lx=(f.x+t.x)/2; ly=f.y;
+        } else {
+          const f=bottom(p1), t=top(p2);
+          const elbowY=f.y+30;
+          d=`M${f.x},${f.y} L${f.x},${elbowY} L${t.x},${elbowY} L${t.x},${t.y}`;
+          lx=(f.x+t.x)/2; ly=elbowY;
+        }
+
+        paths+=`<path d="${d}" fill="none" stroke="${ARC[at]}" stroke-width="1.75" stroke-linecap="square" marker-end="url(#${ARM[at]})"${dash}/>`;
+        if(src.arrowLbl){
+          const cls=at==='yes'?' yes':at==='no'?' no':'';
+          labels+=`<div class="el${cls}" style="left:${lx}px;top:${ly}px">${esc(src.arrowLbl)}</div>`;
+        }
+      });
+    });
+
+    fc.querySelector('.wire-paths').innerHTML = paths;
+    fc.insertAdjacentHTML('beforeend', labels);
+  });
 }
 
 function renderAll(){ renderList(); renderCanvas(); }
